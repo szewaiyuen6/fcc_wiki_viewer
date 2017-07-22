@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      
+      * {
+        box-sizing: border-box;
+      }
+      
+      .search-form-before {
+          width: 500px;
+          height: 150px;
+          position: absolute;
+          top:0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          margin: auto;
+
+      }
+      
+      #search-form a {
+        text-decoration:none;
+        color: black;
+      }
+      
+
+      body {
+        font-family: helvetica, arial, sans-serif;
+        margin: 25px;
+      }
+
+      h1 {
+        font-weight: bold;
+        color: pink;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+
+      p {
+        max-width: 600px;
+      }
+
+      form {
+        margin-bottom: 25px;
+        padding: 15px;
+        background-color: cyan;
+        display: inline-block;
+        width: 100%;
+        max-width: 340px;
+        border-radius: 3px;
+      }
+
+      input {
+        display: block;
+        margin-bottom: 10px;
+        padding: 5px;
+        width: 100%;
+        border: 1px solid lightgrey;
+        border-radius: 3px;
+        font-size: 16px;
+      }
+
+      button {
+        font-size: 16px;
+        border-radius: 3px;
+        background-color: lightgrey;
+        border: 1px solid grey;
+        box-shadow: 2px 2px teal;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: yellow;
+      }
+
+      button:active {
+        box-shadow: none;
+      }
+
+      li {
+        margin-bottom: 5px;
+      }
+
+      footer {
+        margin-top: 50px;
+        padding-top: 25px;
+        border-top: 1px solid lightgrey;
+      }
+
+      footer > a {
+        color: #BBBBBB;
+      }     
+      .button-parent {
+        text-align:center;
+      }
+    </style>
+    
+    <title>FCC Wiki Viwer</title>
+    <meta name="description" content="A cool thing made with Glitch">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  
+  <body>
+    <header><h1>Wiki Viewer</h1></header>
+
+    <main>      
+      <form id="search-form" class="search-form-before">
+        <!-- User inputs their desired search term -->
+        Search Term: <input type="text" id='searchTerm'> <!-- Click DOESN'T happen here -->
+        <div class="button-parent">
+          <!-- User clicks this button to perform search -->
+          <button type="submit" id='searchButton'>Search</button> <!-- Click happens here! -->
+          <!-- Random button does it's titled action -->
+          <button type="submit"><a href="https://en.wikipedia.org/wiki/Special:Random" target="_blank" class="button">Random Wikipedia Article</a></button>
+        </div>
+     </form>
+    </main>
+    <p id="content" class="content">
+      
+    </p>
+    
+    <!-- Your web-app is https, so your scripts need to be too -->
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
+            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
+            crossorigin="anonymous"></script>
+    <script>
+    	$(document).ready(function(){
+        // identify the trigger element --> button
+        $("#searchButton").on("click", function(){
+        	//define actions to happen
+          //We need to clean up search term to handle the following cases
+          // search terms with space(s) e.g. "Harry Potter"
+          // search terms with restricted characters e.g. "Ben & Jerry"
+          // search term with foriegn character e.g. "咖啡" 
+          // search term with non-ASCII character e.g. 
+          var ourSearchTermRaw = $("#searchTerm").val();
+          //var ourSearchTerm = ourSearchTermRaw.replace(/[^a-z0-9]/gmi, "").replace(" ","%20");
+          var ourSearchTerm = ourSearchTermRaw;
+          var requestURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search='+ourSearchTerm+'&format=json';
+          var testURL =  encodeURI(requestURL);
+          $.ajax({
+            		//this has to be jsonp format NOT json because of cross origin request restrictions
+                dataType: "jsonp",
+                url: testURL,
+                //url: requestURL,
+                headers: { 'Api-User-Agent': 'Example/1.0' },
+                type: 'POST',
+                success: function(data) {
+                   console.log(data);
+                  // receiving an array with four elements, 0 is our search term, index 1-3 are results of search
+                  // index 1 is a list of page titles 
+                  // index 2 is the page intro
+                  // index 3 is the page link
+                  // note: basically same search result appears in the same index position in each array
+                  var article_title = data[1]
+                  var article_sum = data[2]
+                  var article_link = data[3]
+                  final_html = ""
+                  $("#search-form").removeClass("search-form-before")
+                  $("#content").empty();
+                  // for loop that prints content of each array to the paragraph element
+                  for (var x = 0; x<data[1].length; x++) {
+                    final_html+="<div>"
+                    title="<h1>"+"<a href='"+article_link[x]+"'>"+article_title[x]+"</a></h1>"
+                  	final_html+=title
+                    sum="<p>"+article_sum[x]+"</p>"
+                    final_html+=sum
+                   
+                      
+                  	final_html+="</div>"
+                  }
+                  $("#content").append(final_html);
+                  console.log("debug step 1")
+                  console.log(final_html)
+                    
+              }
+              });
+          console.log(requestURL);
+          
+          
+          
+        })
+        
+        // define the action --> call the api with user query appended
+        
+        
+      })
+    </script>
+    <script src="/client.js"></script>
+
+  </body>
+</html>
